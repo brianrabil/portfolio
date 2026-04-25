@@ -1,0 +1,105 @@
+import { ArticleLayout } from "@/components/article-layout";
+
+export const article = {
+  author: "Brian Rabil",
+  date: "2026-04-25",
+  title: "Ontology Is the Unlock. Nobody Wants to Say It.",
+  description:
+    "Every team shipping reliable agents has rediscovered the same artifact under a different name. The word for it is ontology — and naming it correctly is what unlocks the next decade of agent systems.",
+  series: "AI Engineering",
+  tags: ["Ontology", "Agents", "AI"],
+  readingTimeMinutes: 12,
+};
+
+export const metadata = {
+  title: article.title,
+  description: article.description,
+};
+
+export default (props) => <ArticleLayout article={article} {...props} />;
+
+There's a pattern in AI engineering right now that nobody has named correctly.
+
+Mike Pollak gives a talk on agents and credits "ubiquitous language" as the thing that finally made his system reliable. Anthropic ships Skills, which are markdown files that teach agents the canonical names and operations of a domain. Cursor users curate `.cursorrules`. Teams write `AGENTS.md` to onboard the agent the way they'd onboard a junior engineer. The MCP spec calls them resource schemas. A2A calls them agent cards. LangChain calls them structured outputs. Every team that has gotten meaningfully better results out of agents has, knowingly or not, sat down and written a precise vocabulary of their domain — the things that exist, the operations that apply to them, the rules that hold between them.
+
+There is a word for this. It is "ontology."
+
+Nobody wants to say it.
+
+## The vocabulary tribes
+
+Ubiquitous language is ontology with better PR. Eric Evans coined the term in 2003 in *Domain-Driven Design*, and the entire concept is downstream of Tom Gruber's 1993 paper that defined an ontology as "a specification of a shared conceptualization." Same idea, different vocabulary tribe. DDD got the pragmatic version into engineering teams. The ontology community got the formal version into IEEE proceedings and never quite made it back to mainstream software.
+
+Context engineering is ontology with a workflow attached. The "context" is the schema; the "engineering" is the discipline of curating it. The recent crop of writing on context engineering is, fundamentally, applied ontology engineering for prompts.
+
+Skills, cursorrules, AGENTS.md — these are all the same move. You write down what your domain is, what the canonical names are, what the operations do, what the constraints are. Then you give the agent that document and it stops drifting. It's not magic. You precommitted the vocabulary, and the agent inherited the commitment.
+
+The reason every team reinvents this from scratch is that the underlying insight has been hiding under a stack of mutually illegible vocabularies for thirty years. DDD people don't read knowledge representation papers. KR researchers don't read DDD blog posts. Prompt engineers don't read either. Each tribe rediscovers the same truth — that you can't build coherent multi-actor systems without a shared conceptualization — and gives it a new name.
+
+## Why nobody says the word
+
+The word "ontology" is radioactive in software because of the semantic web.
+
+Tim Berners-Lee's 2001 *Scientific American* article promised a web of machine-readable knowledge that intelligent agents would roam, executing complex tasks on our behalf by reasoning over RDF and OWL. It was a beautiful vision. It also catastrophically failed to materialize. Twenty-five years later, the average engineer's exposure to ontology is two memories: a friend who got a PhD writing OWL nobody used, and a 2008 enterprise architecture meeting where someone insisted the company needed a "canonical data ontology" before any project could ship.
+
+The vision didn't fail because the underlying idea was wrong. It failed because three things happened at once. Writing OWL was brutal — Protégé in 2005 was the kind of tool that converted enthusiasm into despair within an afternoon. Nobody could agree on global vocabularies, because real domains have local idiosyncrasies that resist universal taxonomy. And the inference engines that were supposed to make ontologies *do something* were brittle at any non-trivial scale. The combination produced a generation of engineers who learned, viscerally, that "ontology" was the word that came right before a project got cancelled.
+
+So when the underlying idea returned — because it had to, because no other approach to multi-actor coherence actually works — the new generation invented new words for it. Ubiquitous language. Context engineering. Skills. Schemas. Cards. Rules.
+
+Each new word lets the speaker pretend they're not doing the failed thing. They are. The failed thing wasn't ontology. The failed thing was global, formal, brittle ontology imposed top-down on heterogeneous systems. That's a specific failure mode. The general technique is fine. Better than fine — necessary.
+
+## Why LLMs make ontology mandatory
+
+Here is the technical argument, plainly.
+
+A large language model is a universal pattern-matcher with no durable commitments. Within a single response it will produce something locally coherent. Across calls, it will not. It will name the same concept three different things in three different responses. It will treat "customer" and "user" as synonyms in one breath and as distinct entities in the next. It will invent function names that don't exist, propose schemas that contradict last week's schemas, and generate outputs that are individually plausible and collectively incoherent.
+
+This is not a flaw that gets fixed by a smarter model. Opus is plenty smart. The problem is structural: an LLM samples from a distribution of plausible continuations, and the distribution doesn't carry across call boundaries unless you make it.
+
+The bottleneck on agent reliability is not reasoning capacity. It is shared commitment to meaning across calls.
+
+An ontology is exactly that commitment. When you tell the agent "in this domain, these are the entities, these are the relations, these are the names, these are the rules," you collapse the distribution. The model still samples — but from a much narrower space, one your team has agreed to in advance. The agent stops drifting because the language stopped letting it drift.
+
+This is why grill-me works. It's not that the agent got smarter. The conversation surface got constrained. Same concept, same name, every time. Same operation, same signature, every time. The vocabulary stopped being negotiable, and reliability followed.
+
+Every team that has shipped a reliable agent system has discovered this, often without realizing what they discovered. They wrote down their domain. They named the things that exist. They constrained the operations. They specified the rules. They built an ontology, and they got coherence in return.
+
+## The inversion
+
+What makes this work in 2026 when it didn't work in 2006 is an inversion of approach.
+
+The semantic web tried to build the ontology first, globally, formally, then layer agents on top. The order was: standardize, ratify, deploy. It failed at the first step because nothing survived contact with a second domain.
+
+Modern agent systems are doing the opposite. Build the agent first, then let the ontology emerge locally — per team, per project, per codebase — in whatever notation is convenient. Markdown skills. TypeScript discriminated unions. Zod schemas. JSON Schema. Pydantic models. TypeQL definitions. OntoUML diagrams. The notation doesn't matter. The commitment does.
+
+Local-first ontology is the actual unlock. You do not need everyone in the world to agree on what a Customer is. You need *your* agents and *your* team to agree, durably, with the agreement written down somewhere your tooling can read. The semantic web's insistence on global agreement was the bug. Local agreement is the feature.
+
+This is why TypeDB suddenly looks interesting after twenty years of being a niche product. It's a substrate where a local ontology can be both expressive — real types, real cardinalities, real rules — and executable. The ontology stops being prose in a markdown file and becomes a queryable, type-checkable, reasonable artifact the agent can read, mutate, and rely on. MCP resource schemas play a similar role at the protocol layer. JSON Schema does it at the data layer. Skills do it at the prompting layer. Different substrates, same insight.
+
+## What changes when you name it
+
+Three things happen when a team starts using the word "ontology" correctly.
+
+First, prior art becomes accessible. Forty years of knowledge representation research stops being invisible. Speech-act theory, BDI semantics, description logics, foundational ontologies, OntoUML's modeling patterns, even the parts of OWL that were genuinely useful — all of this becomes inspiration the moment you stop pretending you're inventing something new. You don't have to adopt OWL. You should read about why it was designed the way it was, because the problems it solved are problems you will hit.
+
+Second, the discipline gets shared. As long as each tribe uses its own word, the discipline doesn't compound across tribes. Once everyone says "ontology," a backend engineer's domain modeling work, a prompt engineer's skill authoring, and a data engineer's schema design become the same activity at different layers of the stack — and the lessons learned in one layer transfer to the others.
+
+Third, the architectural questions get sharper. Where does the ontology live? Who owns it? How is it versioned? How is it mutated? How do agents propose changes? How do humans review them? These are the questions that determine whether your agent system is reliable or hallucinatory at scale. They are answerable questions, but only if you've named the artifact you're asking about.
+
+## What to do about it
+
+Stop calling it twelve different things. Pick "ontology" or pick "domain model" — either works, both are honest — and use it consistently. The vocabulary you use determines the literature you can read and the patterns you can recognize.
+
+Treat your ontology as a first-class engineering artifact. Version it. Review changes to it. Generate documentation from it. Let agents propose mutations but require canonization before commits. The same discipline you apply to your codebase applies to your domain model — because increasingly, your domain model *is* part of your codebase.
+
+Pick a substrate that matches your stage. For a small team prototyping, a markdown skills file is a perfectly good ontology. For a system that needs runtime queryability, JSON Schema or Zod or Pydantic. For a system that needs real reasoning, TypeDB or a triple store. The substrate decision should follow the use case, not lead it. Don't adopt OWL because it's "the standard." Don't reject TypeDB because it's "academic." Pick what your agents can read and your team can maintain.
+
+Build it locally and let it grow. The semantic web's mistake was insisting on global ratification. The new mistake to avoid is the opposite — refusing to write anything down because "we'll figure it out later." You won't. The agents are drifting *now*, and the only thing that stops the drift is a written commitment to vocabulary, however small.
+
+## The frame
+
+The teams that name this correctly will move faster than the teams still inventing twelve words for it. Not because the word matters in itself, but because naming the artifact is what lets you treat it as an artifact — versioned, owned, reviewed, mutated, deployed. Until you name it, it stays implicit, scattered across system prompts and code comments and Slack threads and your own head, and the agent inherits all of the inconsistencies.
+
+Ontology is the unlock everyone is circling. The semantic web didn't kill the idea. It just made the word taste bad. Get over it. Say the word. Write down what exists in your domain, what operations apply, what rules hold. Give that document to your agents.
+
+Watch them stop drifting.
